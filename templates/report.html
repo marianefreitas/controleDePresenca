@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    <h1></h1>
+    <h1>{% block title %} Relatórios {% endblock %}</h1>
+    <body>
+        {% block body %}
+
+        <p>Quantidade de alunos e percentual de faltas:<p/>
+        {% for table in table1 %}
+            {{ table|safe }}
+        {% endfor %}
+
+        <p><p/>
+        <p>Top cinco alunos em quantidade de faltas:<p/>
+        {% for table in table2 %}
+            {{ table|safe }}
+        {% endfor %}
+
+        <p><p/>
+        <p>Gráfico de faltas por sala de aula:<p/>
+        {% for figure in figure1 %}
+            {{ figure|safe }}
+        {% endfor %}
+
+        {% endblock %}
+    </body>
+
+{% endblock %}p
