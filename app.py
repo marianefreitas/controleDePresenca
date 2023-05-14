@@ -6,7 +6,7 @@ import sqlite3
 import matplotlib.pyplot as plt
 import mpld3
 
-Database_Name = "postgres://gnwaijkgmxivpg:ac715d6425dd87b40b708d924d7b73b14381a36ab9db14acd6d192961dd5a86b@ec2-107-21-67-46.compute-1.amazonaws.com:5432/dal8ggfqd1j4eg"
+Database_Name = "database.db"
 Table_Name = "lista_de_presenca"
 
 Query_CreateTable = f"""
