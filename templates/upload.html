@@ -2,12 +2,25 @@
 
 {% block content %}
 
-    <h1></h1>
-    <h1>{% block title %} Upload da lista de presença realizado {% endblock %}</h1>
+    <h1>{% block title %} Status Upload: {% endblock %}</h1>
     <body>
         {% block body %}
-        <p>Status: sucesso<p/>
+
+        {% for message in get_flashed_messages() %}
+
+        <div class="alert alert-success" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+        
+
+        
+
+        
+        
+
+
         {% endblock %}
     </body>
 
-{% endblock %}p
+{% endblock %}

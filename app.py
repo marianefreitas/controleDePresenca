@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, request
 from tkinter.filedialog import askopenfilename
 import pandas as pd
 import openpyxl
@@ -34,67 +34,73 @@ def make_autopct(values):
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = "mysecretkey"
 
 @app.route('/')
 def index():
     return render_template('index.html')
 
+@app.route('/form', methods=['GET', 'POST'])
+def form():
+    return render_template('form.html')
 
-@app.route('/upload')
+@app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
-    file_name = askopenfilename()
-    print(" filename => ", file_name)
+    #file_name = askopenfilename()
+    if request.method == 'POST':
+        file_name = request.files['uploadFile']
+        print(" filename => ", file_name)
 
-    workbook = openpyxl.load_workbook(file_name)
-    worksheet = workbook["Lista Presença_Alunos"]
+        workbook = openpyxl.load_workbook(file_name)
+        worksheet = workbook["Lista Presença_Alunos"]
 
-    file_school = worksheet['E6'].value
-    file_subject = worksheet['E8'].value
-    file_class = worksheet['X8'].value
+        file_school = worksheet['E6'].value
+        file_subject = worksheet['E8'].value
+        file_class = worksheet['X8'].value
 
-    date_reference = ""
-    first_interaction = True
-    for row in range(14, 70):
+        date_reference = ""
+        first_interaction = True
+        for row in range(14, 70):
 
-        for col in range(5,74):
+            for col in range(5,74):
 
-            if worksheet.cell(row=row, column=2).value is not None and worksheet.cell(row=13, column=col).value is not None:
+                if worksheet.cell(row=row, column=2).value is not None and worksheet.cell(row=13, column=col).value is not None:
 
-                if date_reference == "":
-                    date_reference = str(worksheet.cell(row=13, column=col).value)[:7]
+                    if date_reference == "":
+                        date_reference = str(worksheet.cell(row=13, column=col).value)[:7]
 
-                if worksheet.cell(row=row, column=col).value == "P" or worksheet.cell(row=row, column=col).value == "FJ":
-                    student_status = "P"
-                else:
-                    student_status = "F"
+                    if worksheet.cell(row=row, column=col).value == "P" or worksheet.cell(row=row, column=col).value == "FJ":
+                        student_status = "P"
+                    else:
+                        student_status = "F"
 
-                if first_interaction == True:
-                    row_data = {
-                        "school": [file_school],
-                        "subject": [file_subject],
-                        "class": [file_class],
-                        "student_name": [worksheet.cell(row=row, column=2).value],
-                        "student_ra": [worksheet.cell(row=row, column=3).value],
-                        "date_activity": [worksheet.cell(row=13, column=col).value],
-                        "date_reference": [str(worksheet.cell(row=13, column=col).value)[:7]],
-                        "student_attend": [worksheet.cell(row=row, column=col).value],
-                        "student_status": [student_status]
-                    }
-                    file_data = pd.DataFrame(row_data)
-                    first_interaction = False
-                else:
-                    row_data = {
-                        "school": file_school,
-                        "subject": file_subject,
-                        "class": file_class,
-                        "student_name": worksheet.cell(row=row, column=2).value,
-                        "student_ra": worksheet.cell(row=row, column=3).value,
-                        "date_activity": worksheet.cell(row=13, column=col).value,
-                        "date_reference": str(worksheet.cell(row=13, column=col).value)[:7],
-                        "student_attend": worksheet.cell(row=row, column=col).value,
-                        "student_status": student_status
-                    }
-                    file_data.loc[len(file_data)] = row_data
+                    if first_interaction == True:
+                        row_data = {
+                            "school": [file_school],
+                            "subject": [file_subject],
+                            "class": [file_class],
+                            "student_name": [worksheet.cell(row=row, column=2).value],
+                            "student_ra": [worksheet.cell(row=row, column=3).value],
+                            "date_activity": [worksheet.cell(row=13, column=col).value],
+                            "date_reference": [str(worksheet.cell(row=13, column=col).value)[:7]],
+                            "student_attend": [worksheet.cell(row=row, column=col).value],
+                            "student_status": [student_status]
+                        }
+                        file_data = pd.DataFrame(row_data)
+                        first_interaction = False
+                    else:
+                        row_data = {
+                            "school": file_school,
+                            "subject": file_subject,
+                            "class": file_class,
+                            "student_name": worksheet.cell(row=row, column=2).value,
+                            "student_ra": worksheet.cell(row=row, column=3).value,
+                            "date_activity": worksheet.cell(row=13, column=col).value,
+                            "date_reference": str(worksheet.cell(row=13, column=col).value)[:7],
+                            "student_attend": worksheet.cell(row=row, column=col).value,
+                            "student_status": student_status
+                        }
+                        file_data.loc[len(file_data)] = row_data
 
     print(" file_data => \n", file_data.to_string(index=True, header=True))
 
@@ -106,8 +112,9 @@ def upload_file():
     print(" database => \n", pd.read_sql(f"SELECT * FROM {Table_Name}", connection).to_string(index=False, header=True))
     connection.close()
 
-    return render_template('upload.html')
+    flash("Enviado com sucesso")
 
+    return render_template('upload.html')
 
 @app.route('/report')
 def create_reports():
@@ -150,6 +157,14 @@ def create_reports():
     figure1 = mpld3.fig_to_html(figure1, no_extras=True)
 
     return render_template('report.html', table1=[report1.to_html(classes='data', index=False, header="true")], table2=[report2.to_html(classes='data', index=False, header="true")], figure1=[figure1])
+
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"),404
+
+@app.errorhandler(500)
+def page_not_found(e):
+    return render_template("500.html"),500
 
 
 if __name__ == "__main__":
