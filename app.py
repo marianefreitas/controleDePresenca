@@ -1,5 +1,4 @@
 from flask import Flask, render_template, flash, request
-from tkinter.filedialog import askopenfilename
 import pandas as pd
 import openpyxl
 import sqlite3
@@ -46,7 +45,6 @@ def form():
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
-    #file_name = askopenfilename()
     if request.method == 'POST':
         file_name = request.files['uploadFile']
         print(" filename => ", file_name)
